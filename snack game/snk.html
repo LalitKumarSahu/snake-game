@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake-like Scorpion Cursor Game</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            cursor: none; /* Hide the default cursor */
+            background-color: #282c34;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .scorpion-part {
+            background-color: black;
+            border-radius: 50%;
+            position: absolute;
+            pointer-events: none;
+            transition: transform 0.1s ease-in-out;
+        }
+
+        .scorpion-head {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            pointer-events: none;
+            transition: transform 0.1s ease-in-out;
+        }
+
+        .score {
+            color: white;
+            font-size: 24px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .game-over {
+            display: none;
+            color: white;
+            font-size: 32px;
+            text-align: center;
+        }
+
+        .restart-button {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">Score: 0</div>
+    <div class="game-over">Game Over</div>
+    <button class="restart-button">Restart</button>
+    <script>
+        const numParts = 20;
+        const parts = [];
+        const trail = Array(numParts).fill({ x: 0, y: 0 });
+        let score = 0;
+        let gameOver = false;
+
+        const scoreDisplay = document.querySelector('.score');
+        const gameOverDisplay = document.querySelector('.game-over');
+        const restartButton = document.querySelector('.restart-button');
+
+        // Create head
+        const head = document.createElement('div');
+        head.classList.add('scorpion-head');
+        document.body.appendChild(head);
+
+        // Create tail parts
+        for (let i = 0; i < numParts; i++) {
+            const part = document.createElement('div');
+            part.classList.add('scorpion-part');
+            const size = 30 - (i * 1.2); // Gradually decrease size
+            part.style.width = `${size}px`;
+            part.style.height = `${size}px`;
+            document.body.appendChild(part);
+            parts.push(part);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!gameOver) {
+                trail[0] = { x: e.pageX, y: e.pageY }; // Update head position
+
+                // Check if head touches the boundary
+                if (e.pageX < 0 || e.pageY < 0 || e.pageX > window.innerWidth || e.pageY > window.innerHeight) {
+                    endGame();
+                }
+
+                // Check if head touches its own body (snake collision)
+                for (let i = 1; i < trail.length; i++) {
+                    if (Math.abs(trail[0].x - trail[i].x) < 20 && Math.abs(trail[0].y - trail[i].y) < 20) {
+                        incrementScore();
+                    }
+                }
+            }
+        });
+
+        function animateParts() {
+            for (let i = trail.length - 1; i > 0; i--) {
+                trail[i] = {
+                    x: trail[i - 1].x + (trail[i].x - trail[i - 1].x) * 0.8,
+                    y: trail[i - 1].y + (trail[i].y - trail[i - 1].y) * 0.8,
+                };
+            }
+
+            parts.forEach((part, index) => {
+                part.style.transform = `translate(${trail[index].x}px, ${trail[index].y}px)`;
+            });
+
+            head.style.transform = `translate(${trail[0].x}px, ${trail[0].y}px)`;
+
+            if (!gameOver) {
+                requestAnimationFrame(animateParts);
+            }
+        }
+
+        function incrementScore() {
+            score++;
+            scoreDisplay.textContent = `Score: ${score}`;
+        }
+
+        function endGame() {
+            gameOver = true;
+            gameOverDisplay.style.display = 'block';
+            restartButton.style.display = 'block';
+        }
+
+        restartButton.addEventListener('click', () => {
+            location.reload();
+        });
+
+        animateParts();
+    </script>
+</body>
+</html>
